@@ -1,0 +1,29 @@
+{
+  "name": "carchain-simplified-endpoint",
+  "version": "1.0.0",
+  "description": "A simplified endpoint for retrieving data from CarChain",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LRAbbade/CarChain-Simplified-Endpoint.git"
+  },
+  "keywords": [
+    "blockchain",
+    "endpoint"
+  ],
+  "author": "Lucas Abbade",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LRAbbade/CarChain-Simplified-Endpoint/issues"
+  },
+  "homepage": "https://github.com/LRAbbade/CarChain-Simplified-Endpoint#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2"
+  }
+}
