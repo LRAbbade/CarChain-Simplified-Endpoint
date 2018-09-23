@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const rp = require('request-promise');
 const request = require('request');
 const PORT = 6653;
-const blockchain_ip = 'http://localhost:3002';
-// const blockchain_ip = 'http://35.237.108.201:3002';
+// const blockchain_ip = 'http://localhost:3002';
+const blockchain_ip = 'http://35.237.108.201:3002';
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -120,6 +120,56 @@ app.get('/car/:plate', (req, res) => {
             carPlate: carPlate,
             numOfBlocks: blocks.length,
             blocks: blocks 
+        });
+    });
+});
+
+function chainToTimeSeries(chain, callback) {
+    var x_axis = [];
+    var y_axis = [];
+
+    chain.forEach(block => {
+        x_axis.push(block.timestamp);
+        y_axis.push(block.carData.data);
+    });
+
+    callback(x_axis, y_axis);
+}
+
+app.get('/car/timeSeries/:plate', (req, res) => {
+    const carPlate = req.params.plate;
+
+    getCarBlocks(carPlate, (chain) => {
+        chainToTimeSeries(chain, (x_axis, y_axis) => {
+            res.json({
+                note: `Request for ${carPlate} series data`,
+                x_axis: x_axis,
+                y_axis: y_axis
+            });
+        });
+    });
+});
+
+function aggregateValues(values) {
+    for (var i = 1; i < values.length; i++) { 
+        values[i] = values[i] + values[i - 1];
+    }
+
+    return values;
+}
+
+app.get('/car/timeSeries/sum/:plate', (req, res) => {
+    const carPlate = req.params.plate;
+    
+    getCarBlocks(carPlate, (chain) => {
+        chainToTimeSeries(chain, (x_axis, y_axis) => {
+            y_axis = aggregateValues(y_axis);
+
+            res.json({
+                note: `Request for ${carPlate} series data`,
+                x_axis: x_axis,
+                y_axis: y_axis
+            });
         });
     });
 });
