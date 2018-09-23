@@ -4,8 +4,8 @@ const bodyParser = require('body-parser');
 const rp = require('request-promise');
 const request = require('request');
 const PORT = 6653;
-// const blockchain_ip = 'http://localhost:3002';
-const blockchain_ip = 'http://35.237.164.23:3002';
+const blockchain_ip = 'http://localhost:3002';
+// const blockchain_ip = 'http://35.237.108.201:3002';
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -79,12 +79,48 @@ app.get('/lastBlocks/:amount?', (req, res) => {
     });
 });
 
+function getCarBlocks(plate, callback) {
+    request(`${blockchain_ip}/blockchain/0`, (err, res, body) => {
+        body = JSON.parse(body);
+        const numOfPages = body['totalPages'];
+
+        const promisesArr = [];
+        for (var i = 0; i < numOfPages; i++) {
+            promisesArr.push(rp(`${blockchain_ip}/blockchain/${i}`));
+        }
+
+        Promise
+            .all(promisesArr)
+            .then(responseArr => {
+                var chain = [];
+
+                responseArr.forEach(body => {
+                    body = JSON.parse(body);
+                    body['chain'].forEach(block => {
+                        if (block['carPlate'] == plate) {
+                            chain.push(block);
+                        }
+                    });
+                });
+
+                callback(chain);
+            }).catch((err) => {
+                console.log(`Error getting data for car ${plate}`);
+                console.log(err);
+            });
+    });
+}
+
 app.get('/car/:plate', (req, res) => {
     const carPlate = req.params.plate;
 
-    res.json({
-        note: `Request for car ${carPlate}`,
-        blocks: []
+    getCarBlocks(carPlate, (blocks) => {
+        res.json({
+            note: `Request for car ${carPlate}`,
+            carPlate: carPlate,
+            numOfBlocks: blocks.length,
+            blocks: blocks 
+        });
     });
 });
 
